@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My tutorial of blogdown</title>
+    <link>/</link>
+    <description>Recent content on My tutorial of blogdown</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 16 Nov 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>About</title>
+      <link>/about/</link>
+      <pubDate>Thu, 16 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/</guid>
+      <description>I am a doctorial student in the Department of Educational Psychology at the University of Kansas. I basically use this site to show my recent, current, and future works as well as some tutorials about R programming in a way that tries to make my efforts more interactive.
+My research interests are mostly focused on the development of psychometric and general quantitative methods, as applied in the psychological, educational, and social sciences.</description>
+    </item>
+    
+    <item>
+      <title>Simulation Study of Linking using mirt</title>
+      <link>/2017/11/16/simulation-study-of-linking-using-mirt/</link>
+      <pubDate>Thu, 16 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/11/16/simulation-study-of-linking-using-mirt/</guid>
+      <description>This simulation study is to show how to do IRT Linking Process using mirt R Package. The simulation data includes 2 forms - Form A and Form B. These 2 forms are simulated based on 2 groups of individual, one group has 0 mean trait, another has 0.25 mean trait. Both groups have same sd.
+The means and sds of simulated Form A and B ara:
+\[ \theta_{A} = \theta_{B} - 0.</description>
+    </item>
+    
+    <item>
+      <title>Simulation of Lognormal distribution</title>
+      <link>/2017/11/11/simulation-of-lognormal-distribution/</link>
+      <pubDate>Sat, 11 Nov 2017 21:49:57 -0700</pubDate>
+      
+      <guid>/2017/11/11/simulation-of-lognormal-distribution/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;This post is a try about simulating lognormal distribution using R. Lognormal distribution is used a lot in cumulative data (e.x. counting), which is very similar with normal distribution except x should be larger than 0. For instance, the number of schools, the number of students. But I always have no idea about how to parameterized this distribution. I&amp;rsquo;ll update this post as I learn more about lognormal distribution&amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>One Example of Measurement Invariance</title>
+      <link>/2017/11/12/one-example-of-measurement-invariance/</link>
+      <pubDate>Sun, 12 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/11/12/one-example-of-measurement-invariance/</guid>
+      <description>Recently, I was asked by my friend why should we use Measurement Invariance in real research. Why not just ignore this complex and tedious process? As far I’m concerned, measurement invariance should be widely used if you have large data scale and figure out what’s going on between groups difference. In this post, I want to elaborate some problems in Measurement Invariance: 1) What is measurement invariance 2) why should we care about measuremnet invariance 3) how to do measurement invariance using R Lavaan Package.</description>
+    </item>
+    
+    <item>
+      <title>How to use Lavaan for Confirmatory Factor Analysis</title>
+      <link>/2017/11/08/how-to-use-lavaan-for-confirmatory-factor-analysis/</link>
+      <pubDate>Wed, 08 Nov 2017 21:49:57 -0700</pubDate>
+      
+      <guid>/2017/11/08/how-to-use-lavaan-for-confirmatory-factor-analysis/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;This is one of my homework in SEM class, 2017 Fall. I think this is very good example showing how to use lavaan for Confirmatory Factor Analysis. I elaborated each steps including descriptive statistics, model specification and interpretation.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.30.2" />
+
+
+<title>Simulation of Lognormal distribution - My tutorial of blogdown</title>
+<meta property="og:title" content="Simulation of Lognormal distribution - My tutorial of blogdown">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/JihongZ/Learning-R-2018Spring">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">2 min read</span>
+    
+
+    <h1 class="article-title">Simulation of Lognormal distribution</h1>
+
+    
+    <span class="article-date">2017/11/11</span>
+    
+
+    <div class="article-content">
+      <blockquote>
+<p>This post is a try about simulating lognormal distribution using R. Lognormal distribution is used a lot in cumulative data (e.x. counting), which is very similar with normal distribution except x should be larger than 0. For instance, the number of schools, the number of students. But I always have no idea about how to parameterized this distribution. I&rsquo;ll update this post as I learn more about lognormal distribution&hellip;</p>
+</blockquote>
+
+<p></p>
+
+<h2 id="simulate-lognomal-distibution">Simulate lognomal distibution</h2>
+
+<h3 id="simulation-study-1">Simulation Study 1</h3>
+
+<p>This study is to simulate lognormal density distribution based on mean and sd of depedent variable (Y). My simulated mean of y is 891, and sd is 490, N (sample size) is 200000. Then use the formular below:</p>
+
+<pre><code class="language-r">mu  = log(m^2/phi) # log mean
+sigma = sqrt(log(1+v/m^2)) # log sd
+</code></pre>
+
+<p>It could calculate the log mean and log standard deviation for lognormal distribution.</p>
+
+<pre><code class="language-r">set.seed(20171108)
+
+#### Give Y mean and Y sd, simluate lognormal distribution data.
+m = 891 # geometric mean
+sd = 490 # geometric sd
+v = sd ^ 2
+phi = sqrt(v + m^2) 
+
+mu    = log(m^2/phi) # log mean
+sigma = sqrt(log(1+v/m^2)) # log sd
+  
+
+y &lt;- rlnorm(n = 200000, mu, sigma) %&gt;% round(0)
+m.sim &lt;- mean(y) # should be close to 891
+sd.sim &lt;- sd(y) # should be close to 490
+
+row1 &lt;- c(m, mu,m.sim)
+row2 &lt;- c(sd, sigma,sd.sim)
+table &lt;- rbind(row1, row2)
+colnames(table) &lt;- c(&quot;Original&quot;, &quot;Log&quot;, &quot;Simulated&quot;)
+rownames(table)  &lt;- c(&quot;Mean&quot;, &quot;SD&quot;)
+kable(table) 
+</code></pre>
+
+<p>This is the original, log and simulated mean and sd. It could be easily found that simulated ones are very closed to original.</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th align="right">Original</th>
+<th align="right">Log</th>
+<th align="right">Simulated</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Mean</td>
+<td align="right">891</td>
+<td align="right">6.660225</td>
+<td align="right">891.1468</td>
+</tr>
+
+<tr>
+<td>SD</td>
+<td align="right">490</td>
+<td align="right">0.514041</td>
+<td align="right">490.4396</td>
+</tr>
+</tbody>
+</table>
+
+<pre><code class="language-r">plot(density(y))
+</code></pre>
+
+<p>From the density plot below, we can see the mean of X is also close to 891.</p>
+
+<p><img src="/assets/lognomsl-simulation_files/figure-markdown_github/unnamed-chunk-2-1.png" alt="" /></p>
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

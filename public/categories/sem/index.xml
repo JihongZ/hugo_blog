@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sem on My tutorial of blogdown</title>
+    <link>/categories/sem/</link>
+    <description>Recent content in Sem on My tutorial of blogdown</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 12 Nov 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/categories/sem/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>One Example of Measurement Invariance</title>
+      <link>/2017/11/12/one-example-of-measurement-invariance/</link>
+      <pubDate>Sun, 12 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/11/12/one-example-of-measurement-invariance/</guid>
+      <description>Recently, I was asked by my friend why should we use Measurement Invariance in real research. Why not just ignore this complex and tedious process? As far I’m concerned, measurement invariance should be widely used if you have large data scale and figure out what’s going on between groups difference. In this post, I want to elaborate some problems in Measurement Invariance: 1) What is measurement invariance 2) why should we care about measuremnet invariance 3) how to do measurement invariance using R Lavaan Package.</description>
+    </item>
+    
+  </channel>
+</rss>

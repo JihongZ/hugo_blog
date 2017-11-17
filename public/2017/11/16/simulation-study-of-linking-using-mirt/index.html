@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.30.2" />
+
+
+<title>Simulation Study of Linking using mirt - My tutorial of blogdown</title>
+<meta property="og:title" content="Simulation Study of Linking using mirt - My tutorial of blogdown">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/JihongZ/Learning-R-2018Spring">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">23 min read</span>
+    
+
+    <h1 class="article-title">Simulation Study of Linking using mirt</h1>
+
+    
+    <span class="article-date">2017/11/16</span>
+    
+
+    <div class="article-content">
+      <p>This simulation study is to show how to do IRT Linking Process using mirt R Package. The simulation data includes 2 forms - Form A and Form B. These 2 forms are simulated based on 2 groups of individual, one group has 0 mean trait, another has 0.25 mean trait. Both groups have same sd.</p>
+<p>The means and sds of simulated Form A and B ara:</p>
+<p><span class="math display">\[
+\theta_{A} = \theta_{B} - 0.25 \\
+\sigma_A^2 = \sigma_B^2
+\]</span></p>
+<section id="calibration-of-form-a" class="level1">
+<h1>Calibration of Form A</h1>
+<p>The mean of <span class="math inline">\(\theta\)</span> for individuals administrated with form A is 0, the standard deviation (SD=1). In the dataset, X is ID, V1 is true trait (<span class="math inline">\(\theta\)</span>), V3 to V52 is unique items, V54 to V63 are common items.</p>
+<section id="look-at-the-data" class="level2">
+<h2>Look at the data</h2>
+<p>First of all, have a look at the data</p>
+<pre class="r"><code>library(mirt)
+library(tidyverse)
+library(knitr)
+### Read in Raw data from Form A:
+dat &lt;- read.csv(file=&quot;../../data/FormA.csv&quot;)
+glimpse(dat)</code></pre>
+<pre><code>## Observations: 5,000
+## Variables: 64
+## $ X   &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,...
+## $ V1  &lt;dbl&gt; -0.79498, -0.05589, 0.62650, -1.26832, 0.74921, 1.00922, -...
+## $ V2  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
+## $ V3  &lt;int&gt; 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1...
+## $ V4  &lt;int&gt; 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1...
+## $ V5  &lt;int&gt; 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1...
+## $ V6  &lt;int&gt; 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1...
+## $ V7  &lt;int&gt; 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1...
+## $ V8  &lt;int&gt; 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0...
+## $ V9  &lt;int&gt; 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0...
+## $ V10 &lt;int&gt; 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1...
+## $ V11 &lt;int&gt; 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1...
+## $ V12 &lt;int&gt; 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1...
+## $ V13 &lt;int&gt; 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0...
+## $ V14 &lt;int&gt; 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1...
+## $ V15 &lt;int&gt; 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1...
+## $ V16 &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0...
+## $ V17 &lt;int&gt; 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ V18 &lt;int&gt; 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1...
+## $ V19 &lt;int&gt; 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1...
+## $ V20 &lt;int&gt; 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0...
+## $ V21 &lt;int&gt; 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1...
+## $ V22 &lt;int&gt; 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0...
+## $ V23 &lt;int&gt; 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1...
+## $ V24 &lt;int&gt; 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1...
+## $ V25 &lt;int&gt; 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1...
+## $ V26 &lt;int&gt; 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1...
+## $ V27 &lt;int&gt; 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0...
+## $ V28 &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1...
+## $ V29 &lt;int&gt; 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0...
+## $ V30 &lt;int&gt; 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1...
+## $ V31 &lt;int&gt; 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1...
+## $ V32 &lt;int&gt; 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1...
+## $ V33 &lt;int&gt; 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1...
+## $ V34 &lt;int&gt; 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1...
+## $ V35 &lt;int&gt; 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1...
+## $ V36 &lt;int&gt; 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1...
+## $ V37 &lt;int&gt; 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1...
+## $ V38 &lt;int&gt; 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0...
+## $ V39 &lt;int&gt; 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1...
+## $ V40 &lt;int&gt; 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1...
+## $ V41 &lt;int&gt; 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1...
+## $ V42 &lt;int&gt; 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0...
+## $ V43 &lt;int&gt; 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1...
+## $ V44 &lt;int&gt; 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1...
+## $ V45 &lt;int&gt; 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1...
+## $ V46 &lt;int&gt; 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1...
+## $ V47 &lt;int&gt; 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1...
+## $ V48 &lt;int&gt; 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0...
+## $ V49 &lt;int&gt; 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1...
+## $ V50 &lt;int&gt; 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1...
+## $ V51 &lt;int&gt; 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0...
+## $ V52 &lt;int&gt; 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1...
+## $ V53 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
+## $ V54 &lt;int&gt; 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1...
+## $ V55 &lt;int&gt; 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0...
+## $ V56 &lt;int&gt; 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1...
+## $ V57 &lt;int&gt; 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1...
+## $ V58 &lt;int&gt; 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1...
+## $ V59 &lt;int&gt; 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1...
+## $ V60 &lt;int&gt; 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1...
+## $ V61 &lt;int&gt; 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1...
+## $ V62 &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1...
+## $ V63 &lt;int&gt; 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1...</code></pre>
+</section>
+<section id="plot-the-density-of-true-theta-of-group-a" class="level2">
+<h2>Plot the density of true <span class="math inline">\(\theta\)</span> of Group A</h2>
+<p>From the density function, <span class="math inline">\(mu_{\theta}\)</span> is 0, <span class="math inline">\(sd_{\theta}\)</span> is 1.</p>
+<pre class="r"><code>plot(density(dat$V1), main = &quot;Group A True Trait Density&quot;, 
+     xlab=expression(theta) )</code></pre>
+<p><img src="/post/2017-11-10-Linking_simulation_files/figure-html/theta-1.png" width="672" /></p>
+</section>
+<section id="ctt-table" class="level2">
+<h2>CTT Table</h2>
+<p>CTT table could provide a brief description of table. 2 key valables in the table is item difficulty (<em>item.diff</em>) calculated by item means <span class="math inline">\(P(y=1)\)</span> and item discrimination (item.disc), which is item-total correlation.</p>
+<section id="clean-data" class="level3">
+<h3>Clean data</h3>
+<p>By cleaning, data has 60 items including 50 unique item (from item1 to item50) and 10 common items (from item51 to item60). The sample size is 5000.</p>
+<pre class="r"><code>dat_cali &lt;- dat %&gt;% select(V3:V52, V54:V63)
+colnames(dat_cali) &lt;- paste0(&quot;item&quot;,1:60)
+N &lt;- nrow(dat_cali)
+n &lt;- ncol(dat_cali)</code></pre>
+</section>
+<section id="classical-test-theory" class="level3">
+<h3>Classical Test Theory</h3>
+<p>Then calculate the CTT table for Form A. The item discrimination and difficulty could be compared between Form A and Form B. Because the relationship between trait and total score is non-linear, so there is effect of shrinkage.</p>
+<pre class="r"><code># item stats
+## item discrimnation
+item.disc &lt;- apply(dat_cali, 2, function(x) cor(x, rowSums(dat_cali, na.rm = TRUE)))
+
+## item difficulty
+item.diff &lt;- colMeans(dat_cali)
+
+## item response frequency
+item.freq &lt;- reduce(lapply(dat_cali, table), bind_rows)
+
+CTT &lt;- cbind(item.disc, item.diff, item.freq)
+
+kable(CTT, digits = 3, caption = &quot;CTT Table for Form A&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 1: </span>CTT Table for Form A</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">item.disc</th>
+<th style="text-align: right;">item.diff</th>
+<th style="text-align: right;">0</th>
+<th style="text-align: right;">1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>item1</td>
+<td style="text-align: right;">0.365</td>
+<td style="text-align: right;">0.761</td>
+<td style="text-align: right;">1197</td>
+<td style="text-align: right;">3803</td>
+</tr>
+<tr class="even">
+<td>item2</td>
+<td style="text-align: right;">0.464</td>
+<td style="text-align: right;">0.833</td>
+<td style="text-align: right;">835</td>
+<td style="text-align: right;">4165</td>
+</tr>
+<tr class="odd">
+<td>item3</td>
+<td style="text-align: right;">0.457</td>
+<td style="text-align: right;">0.539</td>
+<td style="text-align: right;">2305</td>
+<td style="text-align: right;">2695</td>
+</tr>
+<tr class="even">
+<td>item4</td>
+<td style="text-align: right;">0.471</td>
+<td style="text-align: right;">0.524</td>
+<td style="text-align: right;">2380</td>
+<td style="text-align: right;">2620</td>
+</tr>
+<tr class="odd">
+<td>item5</td>
+<td style="text-align: right;">0.385</td>
+<td style="text-align: right;">0.221</td>
+<td style="text-align: right;">3893</td>
+<td style="text-align: right;">1107</td>
+</tr>
+<tr class="even">
+<td>item6</td>
+<td style="text-align: right;">0.400</td>
+<td style="text-align: right;">0.563</td>
+<td style="text-align: right;">2183</td>
+<td style="text-align: right;">2817</td>
+</tr>
+<tr class="odd">
+<td>item7</td>
+<td style="text-align: right;">0.261</td>
+<td style="text-align: right;">0.457</td>
+<td style="text-align: right;">2717</td>
+<td style="text-align: right;">2283</td>
+</tr>
+<tr class="even">
+<td>item8</td>
+<td style="text-align: right;">0.264</td>
+<td style="text-align: right;">0.365</td>
+<td style="text-align: right;">3176</td>
+<td style="text-align: right;">1824</td>
+</tr>
+<tr class="odd">
+<td>item9</td>
+<td style="text-align: right;">0.331</td>
+<td style="text-align: right;">0.560</td>
+<td style="text-align: right;">2198</td>
+<td style="text-align: right;">2802</td>
+</tr>
+<tr class="even">
+<td>item10</td>
+<td style="text-align: right;">0.505</td>
+<td style="text-align: right;">0.431</td>
+<td style="text-align: right;">2843</td>
+<td style="text-align: right;">2157</td>
+</tr>
+<tr class="odd">
+<td>item11</td>
+<td style="text-align: right;">0.306</td>
+<td style="text-align: right;">0.354</td>
+<td style="text-align: right;">3228</td>
+<td style="text-align: right;">1772</td>
+</tr>
+<tr class="even">
+<td>item12</td>
+<td style="text-align: right;">0.528</td>
+<td style="text-align: right;">0.560</td>
+<td style="text-align: right;">2199</td>
+<td style="text-align: right;">2801</td>
+</tr>
+<tr class="odd">
+<td>item13</td>
+<td style="text-align: right;">0.362</td>
+<td style="text-align: right;">0.550</td>
+<td style="text-align: right;">2251</td>
+<td style="text-align: right;">2749</td>
+</tr>
+<tr class="even">
+<td>item14</td>
+<td style="text-align: right;">0.427</td>
+<td style="text-align: right;">0.761</td>
+<td style="text-align: right;">1196</td>
+<td style="text-align: right;">3804</td>
+</tr>
+<tr class="odd">
+<td>item15</td>
+<td style="text-align: right;">0.433</td>
+<td style="text-align: right;">0.241</td>
+<td style="text-align: right;">3793</td>
+<td style="text-align: right;">1207</td>
+</tr>
+<tr class="even">
+<td>item16</td>
+<td style="text-align: right;">0.377</td>
+<td style="text-align: right;">0.458</td>
+<td style="text-align: right;">2710</td>
+<td style="text-align: right;">2290</td>
+</tr>
+<tr class="odd">
+<td>item17</td>
+<td style="text-align: right;">0.524</td>
+<td style="text-align: right;">0.545</td>
+<td style="text-align: right;">2275</td>
+<td style="text-align: right;">2725</td>
+</tr>
+<tr class="even">
+<td>item18</td>
+<td style="text-align: right;">0.351</td>
+<td style="text-align: right;">0.578</td>
+<td style="text-align: right;">2112</td>
+<td style="text-align: right;">2888</td>
+</tr>
+<tr class="odd">
+<td>item19</td>
+<td style="text-align: right;">0.429</td>
+<td style="text-align: right;">0.509</td>
+<td style="text-align: right;">2455</td>
+<td style="text-align: right;">2545</td>
+</tr>
+<tr class="even">
+<td>item20</td>
+<td style="text-align: right;">0.330</td>
+<td style="text-align: right;">0.307</td>
+<td style="text-align: right;">3465</td>
+<td style="text-align: right;">1535</td>
+</tr>
+<tr class="odd">
+<td>item21</td>
+<td style="text-align: right;">0.399</td>
+<td style="text-align: right;">0.403</td>
+<td style="text-align: right;">2984</td>
+<td style="text-align: right;">2016</td>
+</tr>
+<tr class="even">
+<td>item22</td>
+<td style="text-align: right;">0.418</td>
+<td style="text-align: right;">0.609</td>
+<td style="text-align: right;">1957</td>
+<td style="text-align: right;">3043</td>
+</tr>
+<tr class="odd">
+<td>item23</td>
+<td style="text-align: right;">0.356</td>
+<td style="text-align: right;">0.354</td>
+<td style="text-align: right;">3232</td>
+<td style="text-align: right;">1768</td>
+</tr>
+<tr class="even">
+<td>item24</td>
+<td style="text-align: right;">0.460</td>
+<td style="text-align: right;">0.670</td>
+<td style="text-align: right;">1651</td>
+<td style="text-align: right;">3349</td>
+</tr>
+<tr class="odd">
+<td>item25</td>
+<td style="text-align: right;">0.388</td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">2465</td>
+<td style="text-align: right;">2535</td>
+</tr>
+<tr class="even">
+<td>item26</td>
+<td style="text-align: right;">0.209</td>
+<td style="text-align: right;">0.310</td>
+<td style="text-align: right;">3451</td>
+<td style="text-align: right;">1549</td>
+</tr>
+<tr class="odd">
+<td>item27</td>
+<td style="text-align: right;">0.242</td>
+<td style="text-align: right;">0.476</td>
+<td style="text-align: right;">2618</td>
+<td style="text-align: right;">2382</td>
+</tr>
+<tr class="even">
+<td>item28</td>
+<td style="text-align: right;">0.495</td>
+<td style="text-align: right;">0.502</td>
+<td style="text-align: right;">2492</td>
+<td style="text-align: right;">2508</td>
+</tr>
+<tr class="odd">
+<td>item29</td>
+<td style="text-align: right;">0.441</td>
+<td style="text-align: right;">0.481</td>
+<td style="text-align: right;">2593</td>
+<td style="text-align: right;">2407</td>
+</tr>
+<tr class="even">
+<td>item30</td>
+<td style="text-align: right;">0.450</td>
+<td style="text-align: right;">0.731</td>
+<td style="text-align: right;">1344</td>
+<td style="text-align: right;">3656</td>
+</tr>
+<tr class="odd">
+<td>item31</td>
+<td style="text-align: right;">0.601</td>
+<td style="text-align: right;">0.399</td>
+<td style="text-align: right;">3006</td>
+<td style="text-align: right;">1994</td>
+</tr>
+<tr class="even">
+<td>item32</td>
+<td style="text-align: right;">0.396</td>
+<td style="text-align: right;">0.682</td>
+<td style="text-align: right;">1588</td>
+<td style="text-align: right;">3412</td>
+</tr>
+<tr class="odd">
+<td>item33</td>
+<td style="text-align: right;">0.584</td>
+<td style="text-align: right;">0.613</td>
+<td style="text-align: right;">1933</td>
+<td style="text-align: right;">3067</td>
+</tr>
+<tr class="even">
+<td>item34</td>
+<td style="text-align: right;">0.489</td>
+<td style="text-align: right;">0.557</td>
+<td style="text-align: right;">2216</td>
+<td style="text-align: right;">2784</td>
+</tr>
+<tr class="odd">
+<td>item35</td>
+<td style="text-align: right;">0.467</td>
+<td style="text-align: right;">0.759</td>
+<td style="text-align: right;">1203</td>
+<td style="text-align: right;">3797</td>
+</tr>
+<tr class="even">
+<td>item36</td>
+<td style="text-align: right;">0.312</td>
+<td style="text-align: right;">0.367</td>
+<td style="text-align: right;">3166</td>
+<td style="text-align: right;">1834</td>
+</tr>
+<tr class="odd">
+<td>item37</td>
+<td style="text-align: right;">0.410</td>
+<td style="text-align: right;">0.778</td>
+<td style="text-align: right;">1109</td>
+<td style="text-align: right;">3891</td>
+</tr>
+<tr class="even">
+<td>item38</td>
+<td style="text-align: right;">0.443</td>
+<td style="text-align: right;">0.571</td>
+<td style="text-align: right;">2143</td>
+<td style="text-align: right;">2857</td>
+</tr>
+<tr class="odd">
+<td>item39</td>
+<td style="text-align: right;">0.519</td>
+<td style="text-align: right;">0.755</td>
+<td style="text-align: right;">1224</td>
+<td style="text-align: right;">3776</td>
+</tr>
+<tr class="even">
+<td>item40</td>
+<td style="text-align: right;">0.280</td>
+<td style="text-align: right;">0.327</td>
+<td style="text-align: right;">3365</td>
+<td style="text-align: right;">1635</td>
+</tr>
+<tr class="odd">
+<td>item41</td>
+<td style="text-align: right;">0.413</td>
+<td style="text-align: right;">0.582</td>
+<td style="text-align: right;">2088</td>
+<td style="text-align: right;">2912</td>
+</tr>
+<tr class="even">
+<td>item42</td>
+<td style="text-align: right;">0.338</td>
+<td style="text-align: right;">0.395</td>
+<td style="text-align: right;">3024</td>
+<td style="text-align: right;">1976</td>
+</tr>
+<tr class="odd">
+<td>item43</td>
+<td style="text-align: right;">0.430</td>
+<td style="text-align: right;">0.634</td>
+<td style="text-align: right;">1830</td>
+<td style="text-align: right;">3170</td>
+</tr>
+<tr class="even">
+<td>item44</td>
+<td style="text-align: right;">0.348</td>
+<td style="text-align: right;">0.382</td>
+<td style="text-align: right;">3088</td>
+<td style="text-align: right;">1912</td>
+</tr>
+<tr class="odd">
+<td>item45</td>
+<td style="text-align: right;">0.370</td>
+<td style="text-align: right;">0.530</td>
+<td style="text-align: right;">2351</td>
+<td style="text-align: right;">2649</td>
+</tr>
+<tr class="even">
+<td>item46</td>
+<td style="text-align: right;">0.286</td>
+<td style="text-align: right;">0.337</td>
+<td style="text-align: right;">3314</td>
+<td style="text-align: right;">1686</td>
+</tr>
+<tr class="odd">
+<td>item47</td>
+<td style="text-align: right;">0.456</td>
+<td style="text-align: right;">0.403</td>
+<td style="text-align: right;">2985</td>
+<td style="text-align: right;">2015</td>
+</tr>
+<tr class="even">
+<td>item48</td>
+<td style="text-align: right;">0.340</td>
+<td style="text-align: right;">0.397</td>
+<td style="text-align: right;">3014</td>
+<td style="text-align: right;">1986</td>
+</tr>
+<tr class="odd">
+<td>item49</td>
+<td style="text-align: right;">0.310</td>
+<td style="text-align: right;">0.291</td>
+<td style="text-align: right;">3544</td>
+<td style="text-align: right;">1456</td>
+</tr>
+<tr class="even">
+<td>item50</td>
+<td style="text-align: right;">0.435</td>
+<td style="text-align: right;">0.357</td>
+<td style="text-align: right;">3214</td>
+<td style="text-align: right;">1786</td>
+</tr>
+<tr class="odd">
+<td>item51</td>
+<td style="text-align: right;">0.283</td>
+<td style="text-align: right;">0.821</td>
+<td style="text-align: right;">895</td>
+<td style="text-align: right;">4105</td>
+</tr>
+<tr class="even">
+<td>item52</td>
+<td style="text-align: right;">0.272</td>
+<td style="text-align: right;">0.324</td>
+<td style="text-align: right;">3382</td>
+<td style="text-align: right;">1618</td>
+</tr>
+<tr class="odd">
+<td>item53</td>
+<td style="text-align: right;">0.474</td>
+<td style="text-align: right;">0.531</td>
+<td style="text-align: right;">2347</td>
+<td style="text-align: right;">2653</td>
+</tr>
+<tr class="even">
+<td>item54</td>
+<td style="text-align: right;">0.298</td>
+<td style="text-align: right;">0.336</td>
+<td style="text-align: right;">3318</td>
+<td style="text-align: right;">1682</td>
+</tr>
+<tr class="odd">
+<td>item55</td>
+<td style="text-align: right;">0.427</td>
+<td style="text-align: right;">0.546</td>
+<td style="text-align: right;">2271</td>
+<td style="text-align: right;">2729</td>
+</tr>
+<tr class="even">
+<td>item56</td>
+<td style="text-align: right;">0.471</td>
+<td style="text-align: right;">0.667</td>
+<td style="text-align: right;">1667</td>
+<td style="text-align: right;">3333</td>
+</tr>
+<tr class="odd">
+<td>item57</td>
+<td style="text-align: right;">0.410</td>
+<td style="text-align: right;">0.470</td>
+<td style="text-align: right;">2652</td>
+<td style="text-align: right;">2348</td>
+</tr>
+<tr class="even">
+<td>item58</td>
+<td style="text-align: right;">0.483</td>
+<td style="text-align: right;">0.433</td>
+<td style="text-align: right;">2834</td>
+<td style="text-align: right;">2166</td>
+</tr>
+<tr class="odd">
+<td>item59</td>
+<td style="text-align: right;">0.363</td>
+<td style="text-align: right;">0.232</td>
+<td style="text-align: right;">3841</td>
+<td style="text-align: right;">1159</td>
+</tr>
+<tr class="even">
+<td>item60</td>
+<td style="text-align: right;">0.376</td>
+<td style="text-align: right;">0.666</td>
+<td style="text-align: right;">1670</td>
+<td style="text-align: right;">3330</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="final-calibration-of-form-a" class="level2">
+<h2>Final Calibration of Form A</h2>
+<section id="model-specification" class="level3">
+<h3>Model Specification</h3>
+<pre class="r"><code>SPECS &lt;- mirt.model(&#39;F = 1-60
+                    PRIOR = (1-60, a1, lnorm, 0, 1),
+                    (1-60,  d,  norm, 0, 1),
+                    (1-60,  g,  norm, -1.39,1)&#39;)
+mod_A3PL &lt;- mirt(data=dat_cali, model=SPECS, itemtype=&#39;3PL&#39;)
+parms_a &lt;- coef(mod_A3PL, simplify=TRUE, IRTpars = TRUE)$items</code></pre>
+<pre class="r"><code>a_A &lt;- parms_a[,1] 
+b_A &lt;- parms_a[,2] 
+c_A &lt;- parms_a[,3] 
+theta_A &lt;- fscores(mod_A3PL,method=&quot;EAP&quot;,
+                   full.scores=TRUE, full.scores.SE=TRUE,
+                   scores.only=TRUE)
+head(theta_A, 20) %&gt;% kable(digits = 3, caption = &quot;Model-implied Theta of A&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2: </span>Model-implied Theta of A</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">F1</th>
+<th style="text-align: right;">SE_F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">-1.183</td>
+<td style="text-align: right;">0.350</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.341</td>
+<td style="text-align: right;">0.259</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.576</td>
+<td style="text-align: right;">0.220</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.396</td>
+<td style="text-align: right;">0.410</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.876</td>
+<td style="text-align: right;">0.219</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.434</td>
+<td style="text-align: right;">0.237</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.442</td>
+<td style="text-align: right;">0.272</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.060</td>
+<td style="text-align: right;">0.263</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.136</td>
+<td style="text-align: right;">0.247</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.235</td>
+<td style="text-align: right;">0.217</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.536</td>
+<td style="text-align: right;">0.284</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.182</td>
+<td style="text-align: right;">0.310</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.240</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.165</td>
+<td style="text-align: right;">0.238</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.299</td>
+<td style="text-align: right;">0.466</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.842</td>
+<td style="text-align: right;">0.226</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.921</td>
+<td style="text-align: right;">0.343</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.422</td>
+<td style="text-align: right;">0.230</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.560</td>
+<td style="text-align: right;">0.313</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.276</td>
+<td style="text-align: right;">0.220</td>
+</tr>
+</tbody>
+</table>
+<p>Using 3-PL for irt model of form A. Extracting the cofficients (a, b, c) of IRT. The model-implied theta was outputed, whose mean is 0.131738</p>
+<p>The plot below suggest that SE is low when theta is close to mean, but low theta and high theta has large SE.</p>
+<pre class="r"><code>plot(theta_A[,1],theta_A[,2])</code></pre>
+<p><img src="/post/2017-11-10-Linking_simulation_files/figure-html/SE-1.png" width="672" /></p>
+</section>
+</section>
+</section>
+<section id="calibration-of-form-b" class="level1">
+<h1>Calibration of Form B</h1>
+<p>The structure of Form B is as same as Form A.</p>
+<pre class="r"><code>dat_b &lt;- read.csv(file=&quot;../../data/FormB.csv&quot;)
+glimpse(dat_b)</code></pre>
+<pre><code>## Observations: 5,000
+## Variables: 64
+## $ X   &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,...
+## $ V1  &lt;dbl&gt; 1.12513, 0.29724, -0.54719, 1.18477, 0.37517, 0.05821, 1.1...
+## $ V2  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
+## $ V3  &lt;int&gt; 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0...
+## $ V4  &lt;int&gt; 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0...
+## $ V5  &lt;int&gt; 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0...
+## $ V6  &lt;int&gt; 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1...
+## $ V7  &lt;int&gt; 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1...
+## $ V8  &lt;int&gt; 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1...
+## $ V9  &lt;int&gt; 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1...
+## $ V10 &lt;int&gt; 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1...
+## $ V11 &lt;int&gt; 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0...
+## $ V12 &lt;int&gt; 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0...
+## $ V13 &lt;int&gt; 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1...
+## $ V14 &lt;int&gt; 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0...
+## $ V15 &lt;int&gt; 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1...
+## $ V16 &lt;int&gt; 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1...
+## $ V17 &lt;int&gt; 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0...
+## $ V18 &lt;int&gt; 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1...
+## $ V19 &lt;int&gt; 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1...
+## $ V20 &lt;int&gt; 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0...
+## $ V21 &lt;int&gt; 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0...
+## $ V22 &lt;int&gt; 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0...
+## $ V23 &lt;int&gt; 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1...
+## $ V24 &lt;int&gt; 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0...
+## $ V25 &lt;int&gt; 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1...
+## $ V26 &lt;int&gt; 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1...
+## $ V27 &lt;int&gt; 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0...
+## $ V28 &lt;int&gt; 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1...
+## $ V29 &lt;int&gt; 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0...
+## $ V30 &lt;int&gt; 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1...
+## $ V31 &lt;int&gt; 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0...
+## $ V32 &lt;int&gt; 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1...
+## $ V33 &lt;int&gt; 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0...
+## $ V34 &lt;int&gt; 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1...
+## $ V35 &lt;int&gt; 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0...
+## $ V36 &lt;int&gt; 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0...
+## $ V37 &lt;int&gt; 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0...
+## $ V38 &lt;int&gt; 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1...
+## $ V39 &lt;int&gt; 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0...
+## $ V40 &lt;int&gt; 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1...
+## $ V41 &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0...
+## $ V42 &lt;int&gt; 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0...
+## $ V43 &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1...
+## $ V44 &lt;int&gt; 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1...
+## $ V45 &lt;int&gt; 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1...
+## $ V46 &lt;int&gt; 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0...
+## $ V47 &lt;int&gt; 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0...
+## $ V48 &lt;int&gt; 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0...
+## $ V49 &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0...
+## $ V50 &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1...
+## $ V51 &lt;int&gt; 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1...
+## $ V52 &lt;int&gt; 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0...
+## $ V53 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
+## $ V54 &lt;int&gt; 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1...
+## $ V55 &lt;int&gt; 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0...
+## $ V56 &lt;int&gt; 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0...
+## $ V57 &lt;int&gt; 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1...
+## $ V58 &lt;int&gt; 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0...
+## $ V59 &lt;int&gt; 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1...
+## $ V60 &lt;int&gt; 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1...
+## $ V61 &lt;int&gt; 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0...
+## $ V62 &lt;int&gt; 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0...
+## $ V63 &lt;int&gt; 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1...</code></pre>
+<pre class="r"><code>library(ggplot2)
+
+ggplot(data = dat_b) +
+  ggtitle(&quot;Group B True Trait Density&quot;) +
+  geom_density(aes(x = V1), fill = &quot;skyblue&quot;, col = &quot;skyblue&quot;, alpha=0.8) +
+  xlab(&quot;True Latent Trait&quot;)</code></pre>
+<p><img src="/post/2017-11-10-Linking_simulation_files/figure-html/theta_b-1.png" width="672" /></p>
+<pre class="r"><code>dat_cali2 &lt;- dat_b %&gt;% select(V3:V52, V54:V63)
+colnames(dat_cali2) &lt;- paste0(&quot;item&quot;,1:60)
+N &lt;- nrow(dat_cali2)
+n &lt;- ncol(dat_cali2)
+
+
+# item stats
+## item discrimnation
+item.disc &lt;- apply(dat_cali2, 2, function(x) cor(x, rowSums(dat_cali, na.rm = TRUE)))
+
+## item difficulty
+item.diff &lt;- colMeans(dat_cali2)
+
+## item response frequency
+item.freq &lt;- reduce(lapply(dat_cali2, table), bind_rows)
+
+CTT2 &lt;- cbind(item.disc, item.diff, item.freq)
+
+kable(CTT2, digits = 3, caption = &quot;CTT Table for Form A&quot;)</code></pre>
+<table>
+<caption><span id="tab:stats2">Table 3: </span>CTT Table for Form A</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">item.disc</th>
+<th style="text-align: right;">item.diff</th>
+<th style="text-align: right;">0</th>
+<th style="text-align: right;">1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>item1</td>
+<td style="text-align: right;">-0.029</td>
+<td style="text-align: right;">0.517</td>
+<td style="text-align: right;">2415</td>
+<td style="text-align: right;">2585</td>
+</tr>
+<tr class="even">
+<td>item2</td>
+<td style="text-align: right;">-0.005</td>
+<td style="text-align: right;">0.573</td>
+<td style="text-align: right;">2137</td>
+<td style="text-align: right;">2863</td>
+</tr>
+<tr class="odd">
+<td>item3</td>
+<td style="text-align: right;">-0.037</td>
+<td style="text-align: right;">0.552</td>
+<td style="text-align: right;">2242</td>
+<td style="text-align: right;">2758</td>
+</tr>
+<tr class="even">
+<td>item4</td>
+<td style="text-align: right;">0.008</td>
+<td style="text-align: right;">0.519</td>
+<td style="text-align: right;">2405</td>
+<td style="text-align: right;">2595</td>
+</tr>
+<tr class="odd">
+<td>item5</td>
+<td style="text-align: right;">0.013</td>
+<td style="text-align: right;">0.709</td>
+<td style="text-align: right;">1455</td>
+<td style="text-align: right;">3545</td>
+</tr>
+<tr class="even">
+<td>item6</td>
+<td style="text-align: right;">-0.012</td>
+<td style="text-align: right;">0.804</td>
+<td style="text-align: right;">979</td>
+<td style="text-align: right;">4021</td>
+</tr>
+<tr class="odd">
+<td>item7</td>
+<td style="text-align: right;">0.017</td>
+<td style="text-align: right;">0.687</td>
+<td style="text-align: right;">1567</td>
+<td style="text-align: right;">3433</td>
+</tr>
+<tr class="even">
+<td>item8</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.641</td>
+<td style="text-align: right;">1794</td>
+<td style="text-align: right;">3206</td>
+</tr>
+<tr class="odd">
+<td>item9</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.626</td>
+<td style="text-align: right;">1869</td>
+<td style="text-align: right;">3131</td>
+</tr>
+<tr class="even">
+<td>item10</td>
+<td style="text-align: right;">-0.021</td>
+<td style="text-align: right;">0.392</td>
+<td style="text-align: right;">3038</td>
+<td style="text-align: right;">1962</td>
+</tr>
+<tr class="odd">
+<td>item11</td>
+<td style="text-align: right;">0.021</td>
+<td style="text-align: right;">0.821</td>
+<td style="text-align: right;">893</td>
+<td style="text-align: right;">4107</td>
+</tr>
+<tr class="even">
+<td>item12</td>
+<td style="text-align: right;">-0.012</td>
+<td style="text-align: right;">0.474</td>
+<td style="text-align: right;">2629</td>
+<td style="text-align: right;">2371</td>
+</tr>
+<tr class="odd">
+<td>item13</td>
+<td style="text-align: right;">-0.026</td>
+<td style="text-align: right;">0.687</td>
+<td style="text-align: right;">1564</td>
+<td style="text-align: right;">3436</td>
+</tr>
+<tr class="even">
+<td>item14</td>
+<td style="text-align: right;">0.008</td>
+<td style="text-align: right;">0.517</td>
+<td style="text-align: right;">2414</td>
+<td style="text-align: right;">2586</td>
+</tr>
+<tr class="odd">
+<td>item15</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">2626</td>
+<td style="text-align: right;">2374</td>
+</tr>
+<tr class="even">
+<td>item16</td>
+<td style="text-align: right;">-0.012</td>
+<td style="text-align: right;">0.525</td>
+<td style="text-align: right;">2375</td>
+<td style="text-align: right;">2625</td>
+</tr>
+<tr class="odd">
+<td>item17</td>
+<td style="text-align: right;">-0.025</td>
+<td style="text-align: right;">0.363</td>
+<td style="text-align: right;">3185</td>
+<td style="text-align: right;">1815</td>
+</tr>
+<tr class="even">
+<td>item18</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.393</td>
+<td style="text-align: right;">3036</td>
+<td style="text-align: right;">1964</td>
+</tr>
+<tr class="odd">
+<td>item19</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.490</td>
+<td style="text-align: right;">2550</td>
+<td style="text-align: right;">2450</td>
+</tr>
+<tr class="even">
+<td>item20</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.505</td>
+<td style="text-align: right;">2477</td>
+<td style="text-align: right;">2523</td>
+</tr>
+<tr class="odd">
+<td>item21</td>
+<td style="text-align: right;">0.006</td>
+<td style="text-align: right;">0.710</td>
+<td style="text-align: right;">1451</td>
+<td style="text-align: right;">3549</td>
+</tr>
+<tr class="even">
+<td>item22</td>
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.248</td>
+<td style="text-align: right;">3759</td>
+<td style="text-align: right;">1241</td>
+</tr>
+<tr class="odd">
+<td>item23</td>
+<td style="text-align: right;">0.007</td>
+<td style="text-align: right;">0.594</td>
+<td style="text-align: right;">2030</td>
+<td style="text-align: right;">2970</td>
+</tr>
+<tr class="even">
+<td>item24</td>
+<td style="text-align: right;">-0.010</td>
+<td style="text-align: right;">0.360</td>
+<td style="text-align: right;">3200</td>
+<td style="text-align: right;">1800</td>
+</tr>
+<tr class="odd">
+<td>item25</td>
+<td style="text-align: right;">0.011</td>
+<td style="text-align: right;">0.664</td>
+<td style="text-align: right;">1681</td>
+<td style="text-align: right;">3319</td>
+</tr>
+<tr class="even">
+<td>item26</td>
+<td style="text-align: right;">-0.002</td>
+<td style="text-align: right;">0.790</td>
+<td style="text-align: right;">1050</td>
+<td style="text-align: right;">3950</td>
+</tr>
+<tr class="odd">
+<td>item27</td>
+<td style="text-align: right;">0.011</td>
+<td style="text-align: right;">0.395</td>
+<td style="text-align: right;">3026</td>
+<td style="text-align: right;">1974</td>
+</tr>
+<tr class="even">
+<td>item28</td>
+<td style="text-align: right;">0.009</td>
+<td style="text-align: right;">0.353</td>
+<td style="text-align: right;">3236</td>
+<td style="text-align: right;">1764</td>
+</tr>
+<tr class="odd">
+<td>item29</td>
+<td style="text-align: right;">-0.003</td>
+<td style="text-align: right;">0.335</td>
+<td style="text-align: right;">3325</td>
+<td style="text-align: right;">1675</td>
+</tr>
+<tr class="even">
+<td>item30</td>
+<td style="text-align: right;">-0.015</td>
+<td style="text-align: right;">0.346</td>
+<td style="text-align: right;">3268</td>
+<td style="text-align: right;">1732</td>
+</tr>
+<tr class="odd">
+<td>item31</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.340</td>
+<td style="text-align: right;">3301</td>
+<td style="text-align: right;">1699</td>
+</tr>
+<tr class="even">
+<td>item32</td>
+<td style="text-align: right;">0.007</td>
+<td style="text-align: right;">0.613</td>
+<td style="text-align: right;">1935</td>
+<td style="text-align: right;">3065</td>
+</tr>
+<tr class="odd">
+<td>item33</td>
+<td style="text-align: right;">-0.026</td>
+<td style="text-align: right;">0.377</td>
+<td style="text-align: right;">3117</td>
+<td style="text-align: right;">1883</td>
+</tr>
+<tr class="even">
+<td>item34</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.500</td>
+<td style="text-align: right;">2502</td>
+<td style="text-align: right;">2498</td>
+</tr>
+<tr class="odd">
+<td>item35</td>
+<td style="text-align: right;">-0.007</td>
+<td style="text-align: right;">0.436</td>
+<td style="text-align: right;">2821</td>
+<td style="text-align: right;">2179</td>
+</tr>
+<tr class="even">
+<td>item36</td>
+<td style="text-align: right;">-0.009</td>
+<td style="text-align: right;">0.767</td>
+<td style="text-align: right;">1166</td>
+<td style="text-align: right;">3834</td>
+</tr>
+<tr class="odd">
+<td>item37</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.428</td>
+<td style="text-align: right;">2861</td>
+<td style="text-align: right;">2139</td>
+</tr>
+<tr class="even">
+<td>item38</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.593</td>
+<td style="text-align: right;">2033</td>
+<td style="text-align: right;">2967</td>
+</tr>
+<tr class="odd">
+<td>item39</td>
+<td style="text-align: right;">0.011</td>
+<td style="text-align: right;">0.663</td>
+<td style="text-align: right;">1683</td>
+<td style="text-align: right;">3317</td>
+</tr>
+<tr class="even">
+<td>item40</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">0.606</td>
+<td style="text-align: right;">1968</td>
+<td style="text-align: right;">3032</td>
+</tr>
+<tr class="odd">
+<td>item41</td>
+<td style="text-align: right;">-0.010</td>
+<td style="text-align: right;">0.840</td>
+<td style="text-align: right;">799</td>
+<td style="text-align: right;">4201</td>
+</tr>
+<tr class="even">
+<td>item42</td>
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.554</td>
+<td style="text-align: right;">2232</td>
+<td style="text-align: right;">2768</td>
+</tr>
+<tr class="odd">
+<td>item43</td>
+<td style="text-align: right;">0.012</td>
+<td style="text-align: right;">0.824</td>
+<td style="text-align: right;">880</td>
+<td style="text-align: right;">4120</td>
+</tr>
+<tr class="even">
+<td>item44</td>
+<td style="text-align: right;">-0.018</td>
+<td style="text-align: right;">0.433</td>
+<td style="text-align: right;">2837</td>
+<td style="text-align: right;">2163</td>
+</tr>
+<tr class="odd">
+<td>item45</td>
+<td style="text-align: right;">-0.005</td>
+<td style="text-align: right;">0.429</td>
+<td style="text-align: right;">2855</td>
+<td style="text-align: right;">2145</td>
+</tr>
+<tr class="even">
+<td>item46</td>
+<td style="text-align: right;">-0.019</td>
+<td style="text-align: right;">0.316</td>
+<td style="text-align: right;">3421</td>
+<td style="text-align: right;">1579</td>
+</tr>
+<tr class="odd">
+<td>item47</td>
+<td style="text-align: right;">-0.007</td>
+<td style="text-align: right;">0.827</td>
+<td style="text-align: right;">867</td>
+<td style="text-align: right;">4133</td>
+</tr>
+<tr class="even">
+<td>item48</td>
+<td style="text-align: right;">-0.023</td>
+<td style="text-align: right;">0.760</td>
+<td style="text-align: right;">1201</td>
+<td style="text-align: right;">3799</td>
+</tr>
+<tr class="odd">
+<td>item49</td>
+<td style="text-align: right;">0.009</td>
+<td style="text-align: right;">0.389</td>
+<td style="text-align: right;">3055</td>
+<td style="text-align: right;">1945</td>
+</tr>
+<tr class="even">
+<td>item50</td>
+<td style="text-align: right;">-0.013</td>
+<td style="text-align: right;">0.317</td>
+<td style="text-align: right;">3413</td>
+<td style="text-align: right;">1587</td>
+</tr>
+<tr class="odd">
+<td>item51</td>
+<td style="text-align: right;">-0.002</td>
+<td style="text-align: right;">0.848</td>
+<td style="text-align: right;">762</td>
+<td style="text-align: right;">4238</td>
+</tr>
+<tr class="even">
+<td>item52</td>
+<td style="text-align: right;">-0.018</td>
+<td style="text-align: right;">0.362</td>
+<td style="text-align: right;">3191</td>
+<td style="text-align: right;">1809</td>
+</tr>
+<tr class="odd">
+<td>item53</td>
+<td style="text-align: right;">0.007</td>
+<td style="text-align: right;">0.580</td>
+<td style="text-align: right;">2101</td>
+<td style="text-align: right;">2899</td>
+</tr>
+<tr class="even">
+<td>item54</td>
+<td style="text-align: right;">-0.013</td>
+<td style="text-align: right;">0.363</td>
+<td style="text-align: right;">3184</td>
+<td style="text-align: right;">1816</td>
+</tr>
+<tr class="odd">
+<td>item55</td>
+<td style="text-align: right;">-0.023</td>
+<td style="text-align: right;">0.581</td>
+<td style="text-align: right;">2096</td>
+<td style="text-align: right;">2904</td>
+</tr>
+<tr class="even">
+<td>item56</td>
+<td style="text-align: right;">-0.034</td>
+<td style="text-align: right;">0.731</td>
+<td style="text-align: right;">1344</td>
+<td style="text-align: right;">3656</td>
+</tr>
+<tr class="odd">
+<td>item57</td>
+<td style="text-align: right;">-0.007</td>
+<td style="text-align: right;">0.524</td>
+<td style="text-align: right;">2379</td>
+<td style="text-align: right;">2621</td>
+</tr>
+<tr class="even">
+<td>item58</td>
+<td style="text-align: right;">-0.017</td>
+<td style="text-align: right;">0.491</td>
+<td style="text-align: right;">2547</td>
+<td style="text-align: right;">2453</td>
+</tr>
+<tr class="odd">
+<td>item59</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: right;">0.275</td>
+<td style="text-align: right;">3627</td>
+<td style="text-align: right;">1373</td>
+</tr>
+<tr class="even">
+<td>item60</td>
+<td style="text-align: right;">0.022</td>
+<td style="text-align: right;">0.715</td>
+<td style="text-align: right;">1423</td>
+<td style="text-align: right;">3577</td>
+</tr>
+</tbody>
+</table>
+<section id="final-calibration-of-form-a-1" class="level2">
+<h2>Final Calibration of Form A</h2>
+<section id="model-specification-of-b" class="level3">
+<h3>Model Specification of B</h3>
+<pre class="r"><code>SPECS2 &lt;- mirt.model(&#39;F = 1-60
+                    PRIOR = (1-60, a1, lnorm, 0, 1),
+                    (1-60,  d,  norm, 0, 1),
+                    (1-60,  g,  norm, -1.39,1)&#39;)
+mod_B3PL &lt;- mirt(data=dat_cali2, model=SPECS, itemtype=&#39;3PL&#39;)
+parms_b &lt;- coef(mod_B3PL, simplify=TRUE, IRTpars = TRUE)$items</code></pre>
+<pre class="r"><code>a_B &lt;- parms_b[,1] 
+b_B &lt;- parms_b[,2] 
+c_B &lt;- parms_b[,3] 
+theta_B &lt;- fscores(mod_B3PL,method=&quot;EAP&quot;,
+                   full.scores=TRUE, full.scores.SE=TRUE,
+                   scores.only=TRUE)
+head(theta_B, 20) %&gt;% kable(digits = 3, caption = &quot;Model-implied Theta of B&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-8">Table 4: </span>Model-implied Theta of B</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">F1</th>
+<th style="text-align: right;">SE_F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.934</td>
+<td style="text-align: right;">0.214</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.193</td>
+<td style="text-align: right;">0.220</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.783</td>
+<td style="text-align: right;">0.293</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.866</td>
+<td style="text-align: right;">0.209</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.233</td>
+<td style="text-align: right;">0.261</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.217</td>
+<td style="text-align: right;">0.239</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.891</td>
+<td style="text-align: right;">0.215</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.369</td>
+<td style="text-align: right;">0.232</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.875</td>
+<td style="text-align: right;">0.306</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.411</td>
+<td style="text-align: right;">0.266</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.091</td>
+<td style="text-align: right;">0.223</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.638</td>
+<td style="text-align: right;">0.261</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.252</td>
+<td style="text-align: right;">0.321</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.784</td>
+<td style="text-align: right;">0.261</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.437</td>
+<td style="text-align: right;">0.228</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.136</td>
+<td style="text-align: right;">0.211</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.841</td>
+<td style="text-align: right;">0.491</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.491</td>
+<td style="text-align: right;">0.259</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.065</td>
+<td style="text-align: right;">0.225</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.338</td>
+<td style="text-align: right;">0.240</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="b-plot" class="level2">
+<h2>b-plot</h2>
+<p>The relationship between b parameters of A and B reflect the latent traits of A and B:</p>
+<p><span class="math display">\[
+\theta_{A} = \theta_{B} - 0.25 \\
+\sigma_A^2 = \sigma_B^2
+\]</span> thus, <span class="math inline">\(b_B -b_A\)</span> should also be -0.25. the estimated difference of b is calculate by the mean of b parametes of Form A’s common items and that of Form B’s common items, which is -0.2759353. Thus, it is very close to difference of true traits.</p>
+<pre class="r"><code>### b-plot
+plot(b_A[51:60],b_B[51:60],
+     main=paste0(&quot;r =&quot;, round(cor(b_A[51:60],b_B[51:60]),5)), 
+     xlab = &quot;b_A&quot;,
+     ylab = &quot;b_B&quot;
+     )</code></pre>
+<p><img src="/post/2017-11-10-Linking_simulation_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code># mean(b_B[51:60])-mean(b_A[51:60])</code></pre>
+</section>
+<section id="a-plot" class="level2">
+<h2>a-plot</h2>
+<p>Because <span class="math inline">\(\theta_B - \theta_A = 0.25\)</span>, so a parametes are: <span class="math display">\[
+a_A / a_B = 1
+\]</span></p>
+<p>The true ratio of (means of) a parameters is 1.016284, which is very close to 1. SD of A and B are both close to 1.</p>
+<pre class="r"><code>### a-plot
+plot(a_A[51:60],a_B[51:60],
+     main=round(cor(a_A[51:60],a_B[51:60]),5)
+     )</code></pre>
+<p><img src="/post/2017-11-10-Linking_simulation_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code># mean(a_A[51:60]) / mean(a_B[51:60]) 
+
+
+#SDs of b-values across forms
+SD_bA &lt;- sd(b_A[51:60])
+SD_bB &lt;- sd(b_B[51:60])
+
+Mean_bA &lt;- mean(b_A[51:60])
+Mean_bB &lt;- mean(b_B[51:60])</code></pre>
+</section>
+</section>
+<section id="linking" class="level1">
+<h1>Linking</h1>
+<pre class="r"><code>###
+### Run one or the other, NOT BOTH!
+###
+
+### MS linking: place item parameters from
+### Form B on the scale of Form A
+slope &lt;- SD_bA / SD_bB
+inter &lt;- Mean_bA - slope*Mean_bB
+
+### MM linking: place item parameters from
+### Form B on the scale of Form A
+# slope &lt;- Mean_aA / Mean_aB
+# inter &lt;- Mean_bA - slope*Mean_bB
+
+
+###
+### Perform the Linking
+###
+
+LINKED_items &lt;- matrix(0,50,3)
+
+#Column 3 is c, it stays the same
+LINKED_items[,3] &lt;- c_B[1:50]
+
+#Column 2 is b, it is linked:
+LINKED_items[,2] &lt;- b_B[1:50]*slope + inter
+
+#Column 1 is a, it is also linked:
+LINKED_items[,1] &lt;- a_B[1:50] / slope
+
+### Now the ITEM BANK has 110 items all
+### linked to a common metric!
+rownames(LINKED_items) &lt;- paste0(&quot;item_B&quot;, 1:50)
+ITEM.BANK &lt;- rbind(parms_a[,-4], LINKED_items)
+# write.csv(ITEM.BANK,file=&quot;item_bank.csv&quot;)
+
+#Link the theta estimates
+LINKED_theta &lt;- theta_B[,1]*slope + inter
+LINKED_se &lt;- theta_B[,2]/slope
+
+# write.csv(cbind(LINKED_theta,LINKED_se),file=&quot;LINKED_FormB_theta_est.csv&quot;)
+paste0(&quot;Mean of Theta of B is &quot;,mean(theta_B[,1]) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;Mean of Theta of B is -0.013&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;SD of Theta of B is &quot;, sd(theta_B[,1]) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;SD of Theta of B is 0.97&quot;</code></pre>
+<pre class="r"><code># after Linked
+print(&quot;After Linking:&quot;)</code></pre>
+<pre><code>## [1] &quot;After Linking:&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;Mean of Theta of B is &quot;,mean(LINKED_theta) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;Mean of Theta of B is 0.269&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;SD of Theta of B is &quot;,sd(LINKED_theta) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;SD of Theta of B is 0.935&quot;</code></pre>
+<pre class="r"><code># Theta of A is
+paste0(&quot;Mean of Theta of A is &quot;,mean(theta_A[,1]) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;Mean of Theta of A is -0.02&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;SD of Theta of A is &quot;, sd(theta_A[,1]) %&gt;% round(3))</code></pre>
+<pre><code>## [1] &quot;SD of Theta of A is 0.965&quot;</code></pre>
+</section>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
